@@ -5,7 +5,7 @@ local cratesFolder = workspace:WaitForChild("crates")
 
 local queue = syn and syn.queue_on_teleport or queue_on_teleport
 if queue then
-    queue([[loadstring(game:HttpGet("LINK_SCRIPT_CUA_BAN"))()]]) 
+    queue([[loadstring(game:HttpGet("https://raw.githubusercontent.com/avu73923/Luau/refs/heads/main/SirenHeadLegacy"))()]]) 
 end
 
 local function getHRP()
