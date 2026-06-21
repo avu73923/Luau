@@ -1,0 +1,48 @@
+local TeleportService = game:GetService("TeleportService")
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local cratesFolder = workspace:WaitForChild("crates")
+
+local queue = syn and syn.queue_on_teleport or queue_on_teleport
+if queue then
+    queue([[loadstring(game:HttpGet("LINK_SCRIPT_CUA_BAN"))()]]) 
+end
+
+local function getHRP()
+    return player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+end
+
+local function hopServer()
+    TeleportService:Teleport(game.PlaceId, player)
+end
+
+task.spawn(function()
+    while true do
+        local crates = {}
+        for _, obj in ipairs(cratesFolder:GetDescendants()) do
+            if obj.Name == "crate" then
+                table.insert(crates, obj)
+            end
+        end
+
+        if #crates > 0 then
+            for _, crate in ipairs(crates) do
+                local part = (crate:IsA("BasePart") and crate) or (crate:IsA("Model") and (crate.PrimaryPart or crate:FindFirstChildWhichIsA("BasePart")))
+                if part and getHRP() then
+                    getHRP().CFrame = part.CFrame + Vector3.new(0, 3, 0)
+                    task.wait(0.2)
+                    for _, v in ipairs(crate:GetDescendants()) do
+                        if v:IsA("ProximityPrompt") then
+                            v.HoldDuration = 0
+                            fireproximityprompt(v)
+                        end
+                    end
+                end
+            end
+        else
+            hopServer()
+            break 
+        end
+        task.wait(0.5)
+    end
+end)
