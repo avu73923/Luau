@@ -1,22 +1,34 @@
 local TeleportService = game:GetService("TeleportService")
 local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
 local player = Players.LocalPlayer
 local cratesFolder = workspace:WaitForChild("crates")
 
-local queue = syn and syn.queue_on_teleport or queue_on_teleport
+local queue = (syn and syn.queue_on_teleport) or queue_on_teleport or (fluxus and fluxus.queue_on_teleport)
 if queue then
-    queue([[loadstring(game:HttpGet("https://raw.githubusercontent.com/avu73923/Luau/refs/heads/main/SirenHeadLegacy"))()]]) 
+    queue([[loadstring(game:HttpGet("https://raw.githubusercontent.com/avu73923/Luau/refs/heads/main/SirenHeadLegacy"))()]])
 end
 
 local function getHRP()
     return player.Character and player.Character:FindFirstChild("HumanoidRootPart")
 end
 
-local queue = (syn and syn.queue_on_teleport) or queue_on_teleport or (fluxus and fluxus.queue_on_teleport)
-
 local function hopServer()
     task.wait(2)
-    TeleportService:Teleport(game.PlaceId, player)
+    local url = "https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?limit=100"
+    local response = request({Url = url, Method = "GET"})
+    local body = HttpService:JSONDecode(response.Body)
+    local servers = {}
+    for _, server in pairs(body.data) do
+        if server.id ~= game.JobId and server.playing < server.maxPlayers then
+            table.insert(servers, server.id)
+        end
+    end
+    if #servers > 0 then
+        TeleportService:TeleportToPlaceInstance(game.PlaceId, servers[math.random(1, #servers)], player)
+    else
+        TeleportService:Teleport(game.PlaceId, player)
+    end
 end
 
 task.spawn(function()
@@ -27,7 +39,6 @@ task.spawn(function()
                 table.insert(crates, obj)
             end
         end
-
         if #crates > 0 then
             for _, crate in ipairs(crates) do
                 local part = (crate:IsA("BasePart") and crate) or (crate:IsA("Model") and (crate.PrimaryPart or crate:FindFirstChildWhichIsA("BasePart")))
@@ -44,7 +55,7 @@ task.spawn(function()
             end
         else
             hopServer()
-            break 
+            break
         end
         task.wait(0.5)
     end
